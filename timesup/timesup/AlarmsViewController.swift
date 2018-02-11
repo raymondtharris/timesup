@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import UserNotifications
 
 class AlarmsViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
     
@@ -17,6 +18,9 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         button.setTitleColor(.black, for: .normal)
         button.layer.cornerRadius = 10
         button.addTarget(self, action: #selector(handleAdd), for: .touchUpInside)
+        button.layer.shadowColor = UIColor.gray.cgColor
+        button.layer.shadowOffset = CGSize(width: 1.0, height: 2.0)
+        button.layer.shadowOpacity = 1.0
         return button
     }()
     
@@ -29,13 +33,24 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         collectionView?.register(AlarmCellView.self, forCellWithReuseIdentifier: "AlarmCell")
         
         collectionView?.contentInset = UIEdgeInsetsMake(16, 0, 80, 0)
-        collectionView?.addSubview(addButton)
-        addButton.translatesAutoresizingMaskIntoConstraints = false
-        addButton.leadingAnchor.constraint(equalTo: (collectionView?.safeAreaLayoutGuide.leadingAnchor)!, constant: 10).isActive = true
-        addButton.trailingAnchor.constraint(equalTo: (collectionView?.safeAreaLayoutGuide.trailingAnchor)!, constant: -10).isActive = true
-        addButton.bottomAnchor.constraint(equalTo: (collectionView?.safeAreaLayoutGuide.bottomAnchor)!, constant: -10).isActive = true
-        addButton.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
+        let BlurEffect = UIBlurEffect(style: .light)
+        let blurView = UIVisualEffectView(effect: BlurEffect)
+        
+        collectionView?.addSubview(blurView)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.leadingAnchor.constraint(equalTo: (collectionView?.safeAreaLayoutGuide.leadingAnchor)!, constant: 0).isActive = true
+        blurView.trailingAnchor.constraint(equalTo: (collectionView?.safeAreaLayoutGuide.trailingAnchor)!, constant: 0).isActive = true
+        blurView.bottomAnchor.constraint(equalTo: (collectionView?.safeAreaLayoutGuide.bottomAnchor)!, constant: 0).isActive = true
+        blurView.heightAnchor.constraint(equalToConstant: 76).isActive = true
+        
+        blurView.contentView.addSubview(addButton)
+        addButton.translatesAutoresizingMaskIntoConstraints = false
+        addButton.leadingAnchor.constraint(equalTo: blurView.leadingAnchor, constant: 10).isActive = true
+        addButton.trailingAnchor.constraint(equalTo: blurView.trailingAnchor, constant: -10).isActive = true
+        addButton.bottomAnchor.constraint(equalTo: blurView.bottomAnchor, constant: -10).isActive = true
+        addButton.heightAnchor.constraint(equalToConstant: 60).isActive = true
+      
     }
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -54,6 +69,15 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
     @objc func handleAdd() -> Void {
         let newAlarm  = Alarm()
         alarms.append(newAlarm)
+        let testNotification = UNMutableNotificationContent()
+        testNotification.title = "Alarm"
+        testNotification.body = "It's 7:30"
+        testNotification.sound = UNNotificationSound.default()
+        
+        let notificationTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
+        let notificationRequest = UNNotificationRequest(identifier: "alarmNotification", content: testNotification, trigger: notificationTrigger)
+        UNUserNotificationCenter.current().add(notificationRequest, withCompletionHandler: nil)
+        
         collectionView?.reloadData()
         
     }
@@ -82,6 +106,11 @@ class AlarmCellView: UICollectionViewCell {
         super.init(frame: frame)
         backgroundColor = .white
         layer.cornerRadius = 10
+        layer.shadowColor = UIColor.gray.cgColor
+        layer.shadowOffset = CGSize(width: 1.0, height: 2.0)
+        layer.shadowOpacity = 1.0
+        
+        
         addSubview(alarmLabel)
         alarmLabel.translatesAutoresizingMaskIntoConstraints = false
         alarmLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0).isActive = true
