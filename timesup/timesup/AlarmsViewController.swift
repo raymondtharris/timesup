@@ -30,7 +30,7 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         button.setTitle("Cancel", for: .normal)
         button.setTitleColor(.red, for: .normal)
         button.layer.cornerRadius = 10
-        button.addTarget(self, action: #selector(handleAdd), for: .touchUpInside)
+        button.addTarget(self, action: #selector(handleCancel), for: .touchUpInside)
         button.layer.shadowColor = UIColor.gray.cgColor
         button.layer.shadowOffset = CGSize(width: 1.0, height: 2.0)
         button.layer.shadowOpacity = 1.0
@@ -43,7 +43,7 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         button.setTitle("Update", for: .normal)
         button.setTitleColor(.green, for: .normal)
         button.layer.cornerRadius = 10
-        button.addTarget(self, action: #selector(handleAdd), for: .touchUpInside)
+        button.addTarget(self, action: #selector(handleConfirm), for: .touchUpInside)
         button.layer.shadowColor = UIColor.gray.cgColor
         button.layer.shadowOffset = CGSize(width: 1.0, height: 2.0)
         button.layer.shadowOpacity = 1.0
@@ -103,7 +103,7 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
  
     override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         let newCell = cell as! AlarmCellView
-        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: .top)
+        
          //newCell.translatesAutoresizingMaskIntoConstraints = false
         /*
         if alarms.count > 1 {
@@ -136,10 +136,11 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
     }
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let cell = collectionView.cellForItem(at: indexPath)
-        cell?.superview?.bringSubview(toFront: cell!)
+        let cell = collectionView.cellForItem(at: indexPath) as! AlarmCellView
+        cell.superview?.bringSubview(toFront: cell)
         blurView.superview?.bringSubview(toFront: blurView)
         addButton.removeFromSuperview()
+        
         lowerStack = UIStackView(arrangedSubviews: [cancelButton, confirmButton])
         blurView.contentView.addSubview(lowerStack)
         lowerStack.translatesAutoresizingMaskIntoConstraints = false
@@ -151,7 +152,7 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.leadingAnchor.constraint(equalTo: lowerStack.leadingAnchor, constant: 0).isActive = true
         cancelButton.widthAnchor.constraint(equalToConstant: blurView.contentView.frame.width/3).isActive = true
-        cancelButton.bottomAnchor.constraint(equalTo: lowerStack.bottomAnchor, constant: -10).isActive = true
+        cancelButton.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor, constant: -10).isActive = true
         cancelButton.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
         confirmButton.translatesAutoresizingMaskIntoConstraints = false
@@ -160,16 +161,72 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         confirmButton.bottomAnchor.constraint(equalTo: cancelButton.bottomAnchor, constant: 0).isActive = true
         confirmButton.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
-        
-        UIView.animate(withDuration: 0.7, animations: {
+        UIView.animate(withDuration: 1.0, delay: 0, usingSpringWithDamping: 0, initialSpringVelocity: 0, options: .beginFromCurrentState, animations: {
+            cell.alarmLabel.isHidden = true
+            cell.timeLabel.isHidden = true
+            
             collectionView.isScrollEnabled = false
-            cell?.backgroundColor = .white
-            cell?.translatesAutoresizingMaskIntoConstraints = false
-            cell?.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor).isActive = true
-            cell?.topAnchor.constraint(equalTo: collectionView.topAnchor).isActive = true
-            cell?.widthAnchor.constraint(equalToConstant: collectionView.bounds.width).isActive = true
-            cell?.heightAnchor.constraint(equalToConstant: collectionView.bounds.height).isActive = true
+            cell.backgroundColor = .white
+            cell.frame = collectionView.bounds
+            cell.layer.cornerRadius = 0
+        }) { (finish) in
+            
+            cell.addSubview(cell.topContainerView)
+            cell.topContainerView.translatesAutoresizingMaskIntoConstraints = false
+            cell.topContainerView.topAnchor.constraint(equalTo: cell.topAnchor, constant: 30).isActive = true
+            cell.topContainerView.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 10).isActive = true
+            cell.topContainerView.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -10).isActive = true
+            cell.topContainerView.heightAnchor.constraint(equalToConstant: 100).isActive = true
+            
+            cell.topContainerView.addSubview(cell.alarmNameLabel)
+            cell.alarmNameLabel.translatesAutoresizingMaskIntoConstraints = false
+            cell.alarmNameLabel.topAnchor.constraint(equalTo: cell.topContainerView.topAnchor, constant: 10).isActive = true
+            cell.alarmNameLabel.leadingAnchor.constraint(equalTo: cell.topContainerView.leadingAnchor, constant: 0).isActive = true
+            cell.alarmNameLabel.widthAnchor.constraint(equalToConstant: 260).isActive = true
+            cell.alarmNameLabel.heightAnchor.constraint(equalToConstant: 80).isActive = true
+            
+            cell.topContainerView.addSubview(cell.alarmTimeTextView)
+            cell.alarmTimeTextView.translatesAutoresizingMaskIntoConstraints = false
+            cell.alarmTimeTextView.topAnchor.constraint(equalTo: cell.alarmNameLabel.topAnchor, constant: 0).isActive = true
+            cell.alarmTimeTextView.leadingAnchor.constraint(equalTo: cell.alarmNameLabel.trailingAnchor, constant: 0).isActive = true
+            cell.alarmTimeTextView.trailingAnchor.constraint(equalTo: cell.topContainerView.trailingAnchor, constant: 0).isActive = true
+            cell.alarmTimeTextView.heightAnchor.constraint(equalToConstant: 80).isActive = true
+            
+            
+            cell.addSubview(cell.middleContainerView)
+            cell.middleContainerView.translatesAutoresizingMaskIntoConstraints = false
+            cell.middleContainerView.topAnchor.constraint(equalTo: cell.topContainerView.bottomAnchor, constant: 10).isActive = true
+            cell.middleContainerView.leadingAnchor.constraint(equalTo: cell.topContainerView.leadingAnchor).isActive = true
+            cell.middleContainerView.trailingAnchor.constraint(equalTo: cell.topContainerView.trailingAnchor).isActive = true
+            cell.middleContainerView.heightAnchor.constraint(equalToConstant: 100).isActive = true
+            
+            cell.middleContainerView.addSubview(cell.musicImageView)
+            cell.musicImageView.translatesAutoresizingMaskIntoConstraints = false
+            cell.musicImageView.topAnchor.constraint(equalTo: cell.middleContainerView.topAnchor, constant: 10).isActive = true
+            cell.musicImageView.leadingAnchor.constraint(equalTo: cell.middleContainerView.leadingAnchor).isActive = true
+            cell.musicImageView.widthAnchor.constraint(equalToConstant: 80).isActive = true
+            cell.musicImageView.heightAnchor.constraint(equalToConstant: 80).isActive = true
+            
+            //cell.middleContainerView.addSubview(cell.musicNameLabel)
+            //cell.musicNameLabel.translatesAutoresizingMaskIntoConstraints = false
+            
+        }
+       /*
+        UIView.animate(withDuration: 2.7, delay: 0.0 ,usingSpringWithDamping: 0.0, initialSpringVelocity: 0.0, options: .beginFromCurrentState, animations: {
+            
+       
+            cell.translatesAutoresizingMaskIntoConstraints = false
+            cell.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor).isActive = true
+            cell.topAnchor.constraint(equalTo: collectionView.topAnchor).isActive = true
+            cell.widthAnchor.constraint(equalToConstant: collectionView.bounds.width).isActive = true
+            cell.heightAnchor.constraint(equalToConstant: collectionView.bounds.height).isActive = true
+
         }, completion: nil)
+       
+        UIView.animate(withDuration: 0.7, animations: {
+            
+        }, completion: nil)
+        */
         //cell?.heightAnchor.constraint(equalToConstant: 400).isActive = true
     }
     
@@ -191,6 +248,12 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         UNUserNotificationCenter.current().add(notificationRequest, withCompletionHandler: nil)
         */
         //collectionView?.reloadData()
+        
+    }
+    @objc func handleCancel() -> Void {
+        
+    }
+    @objc func handleConfirm() -> Void {
         
     }
     
@@ -221,6 +284,54 @@ class AlarmCellView: UICollectionViewCell {
         label.font = UIFont.boldSystemFont(ofSize: 36)
         return label
     }()
+    
+    var topContainerView: UIView = {
+       let view = UIView()
+        view.backgroundColor = .red
+        return view
+    }()
+    
+    var alarmNameLabel:UITextView = {
+        let label = UITextView()
+        label.text = "Alarm"
+        label.textColor = .blue
+        label.font = UIFont.boldSystemFont(ofSize: 30)
+        label.backgroundColor = .gray
+        return label
+    }()
+    
+    var alarmTimeTextView: UITextView = {
+       let textView = UITextView()
+        textView.textColor = .blue
+        textView.font = UIFont.boldSystemFont(ofSize: 30)
+        textView.backgroundColor = .green
+        return textView
+    }()
+    
+    var middleContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .red
+        return view
+    }()
+    
+    var musicImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.backgroundColor = .blue
+        return imageView
+    }()
+    var musicNameLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Song"
+        return label
+    }()
+    
+    var bottomContainerView: UIView = {
+       let view = UIView()
+        view.backgroundColor = .red
+        return view
+    }()
+    
+    
     
     let tapGesture = UITapGestureRecognizer()
     let swipeGesture = UISwipeGestureRecognizer()
