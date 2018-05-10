@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UserNotifications
 
 
 enum AlarmState {
@@ -29,4 +30,12 @@ struct Alarm {
     var state: AlarmState = .off
     var doesRepeat: Bool = false
     var daysToRepeat: Queue<AlarmRepeat> = Queue()
+    var currentNotification:UNNotificationRequest? = nil
+    
+    mutating func repeatNext() -> Void {
+        
+        let lastRepeated = daysToRepeat.Dequeue()
+        daysToRepeat.Enqueue(newNode: Node(newValue: lastRepeated!.value))
+    }
+    
 }
