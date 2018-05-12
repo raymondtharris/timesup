@@ -26,7 +26,9 @@ enum AlarmRepeat {
 
 struct Alarm {
     var name = ""
-    var alarmTime:Timer? = nil
+	var alarmHour:Int = 0
+	var alarmMinute:Int = 0
+	var alarmTimeOfDay:AMPM = .AM
     var state: AlarmState = .off
     var doesRepeat: Bool = false
     var daysToRepeat: Queue<AlarmRepeat> = Queue()

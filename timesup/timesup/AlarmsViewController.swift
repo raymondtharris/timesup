@@ -9,7 +9,7 @@
 import UIKit
 import UserNotifications
 
-class AlarmsViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, UIPickerViewDataSource, UIPickerViewDelegate {
+class AlarmsViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, UIPickerViewDataSource, UIPickerViewDelegate, UITextViewDelegate {
     
     
     let minutes:Array<Int> = {
@@ -31,7 +31,8 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
 	var hourSelected:String = "0"
 	var minuteSelected:String = "00"
 	var selectedTimeOfDay:String = "AM"
-	
+	var activeTextField: UITextView? = nil
+	var currentAlarm: Alarm? = nil
     var state:viewState = .creation
     let addButton: UIButton = {
         let button = UIButton()
@@ -193,6 +194,7 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
 					cell.alarmNameLabel.leadingAnchor.constraint(equalTo: cell.topContainerView.leadingAnchor, constant: 0).isActive = true
 					cell.alarmNameLabel.widthAnchor.constraint(equalToConstant: 260).isActive = true
 					cell.alarmNameLabel.heightAnchor.constraint(equalToConstant: 80).isActive = true
+					cell.alarmNameLabel.delegate = self
 					
 					cell.topContainerView.addSubview(cell.alarmTimeTextView)
 					cell.alarmTimeTextView.translatesAutoresizingMaskIntoConstraints = false
@@ -200,6 +202,7 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
 					cell.alarmTimeTextView.leadingAnchor.constraint(equalTo: cell.alarmNameLabel.trailingAnchor, constant: 0).isActive = true
 					cell.alarmTimeTextView.trailingAnchor.constraint(equalTo: cell.topContainerView.trailingAnchor, constant: 0).isActive = true
 					cell.alarmTimeTextView.heightAnchor.constraint(equalToConstant: 80).isActive = true
+					cell.alarmTimeTextView.delegate = self
 					cell.alarmTimePickerView.delegate = self
 					cell.alarmTimePickerView.dataSource = self
 					cell.alarmTimeTextView.inputView = cell.alarmTimePickerView
@@ -215,7 +218,7 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
 					toolBar.setItems([doneButton], animated: false)
 					toolBar.isUserInteractionEnabled = true
 					cell.alarmTimeTextView.inputAccessoryView = toolBar
-					
+					cell.alarmNameLabel.inputAccessoryView = toolBar
 					
 					cell.addSubview(cell.middleContainerView)
 					cell.middleContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -288,10 +291,14 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         //cell?.heightAnchor.constraint(equalToConstant: 400).isActive = true
     }
 	
+	func textViewDidBeginEditing(_ textView: UITextView) {
+		activeTextField = textView
+	}
+	
 	@objc func donePicker (sender:UITabBarItem)
 	{
 		// Put something here
-		activeCell?.alarmTimeTextView.resignFirstResponder()
+		activeTextField!.resignFirstResponder()
 	}
 	
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -353,8 +360,8 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
 		return (self.view.frame.size.width*40)/100
 	}
     @objc func handleAdd() -> Void {
-        let newAlarm  = Alarm()
-        alarms.insert(newAlarm, at: 0)
+        currentAlarm  = Alarm()
+        alarms.insert(currentAlarm!, at: 0)
         let newIndexPath = IndexPath(item: 0, section: 0)
         collectionView?.insertItems(at: [newIndexPath])
         
@@ -372,11 +379,24 @@ class AlarmsViewController: UICollectionViewController, UICollectionViewDelegate
         
     }
     @objc func handleCancel() -> Void {
-        
+        //Transform back to alarm list view
+		// Delete alarm in list at index 0
+		
     }
     @objc func handleConfirm() -> Void {
-        
+        print("finished")
+		currentAlarm?.name = (activeCell?.alarmNameLabel.text!)!
+		currentAlarm?.alarmHour = Int(hourSelected)!
+		currentAlarm?.alarmMinute = Int(minuteSelected)!
+		if selectedTimeOfDay == "AM" {
+			currentAlarm?.alarmTimeOfDay = .AM
+		} else {
+			currentAlarm?.alarmTimeOfDay = .PM
+		}
+		
+		//Transform back to alarm list view
     }
+
     
 }
 
